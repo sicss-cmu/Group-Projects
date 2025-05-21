@@ -67,7 +67,6 @@ server <- function(input, output, session) {
       
       # Signal that data is ready to display
       dataReady(TRUE)
-      return(tidy_words)
       
       # plotting word cloud
       if (nrow(tidy_words) == 0) {
