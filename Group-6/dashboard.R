@@ -7,12 +7,6 @@ library(tm)
 library(readr)
 library(stringr)
 
-library(ggplot2)
-
-library(lubridate)
-library(DT)
-
-
 EPP_data <- read_csv("EPP_data.csv") %>%
   rename(year = `Publication Year`, abstract = `Abstract Note`) %>%
   filter(!is.na(year), !is.na(abstract))
