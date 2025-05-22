@@ -55,6 +55,9 @@ server <- function(input, output, session) {
       tidy_words <- filtered %>%
         unnest_tokens(word, abstract) %>%
         filter(!word %in% stop_words$word) %>%
+        filter(!word %in% c("model", "polici", "effect", "data", "result", "increas",
+                            "impact", "thesi", "provid", "inform", "assess", "potenti",
+                            "chang", "chapter", "studi", "base", "level")) %>%
         filter(str_detect(word, "^[a-z]+$")) %>%
         count(word, sort = TRUE) %>%
         head(100)
