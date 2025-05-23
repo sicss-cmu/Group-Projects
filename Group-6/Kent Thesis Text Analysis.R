@@ -9,7 +9,7 @@ lapply(packages, library, character.only = TRUE)
 
 # read in data
 
-data <- read.csv('/Users/garrettkent/Desktop/SICSS EPP Dissertations.csv') %>%
+data <- read.csv('/Users/garrettkent/Desktop/SICSS Group Project/SICSS EPP Dissertations.csv') %>%
   select(date = Publication.Year, title = Title, text = Abstract.Note)
 
 # tokenize
@@ -47,12 +47,11 @@ tidy_data %>%
   arrange(desc(n)) %>%
   head(50)
 
-library(stringr)
-
 tidy_data <- tidy_data %>%
   filter(!word %in% c("model", "polici", "effect", "data", "result", "increas",
                       "impact", "thesi", "provid", "inform", "assess", "potenti",
-                      "chang", "chapter", "studi", "base", "level"))
+                      "chang", "chapter", "studi", "base", "level", "benefit",
+                      "research"))
 
 tidy_data %>%
   count(word) %>%
@@ -194,7 +193,7 @@ top_tfidf$word[1:10]
 
 # mapping specific terms usage over time
 
-selected_words <- c("technolog")  # Use stemmed versions if stemming was applied
+selected_words <- c("technolog")
 
 tidy_data %>%
   filter(word %in% selected_words) %>%
@@ -266,6 +265,9 @@ relative_freq <- word_counts %>%
 relative_freq_filtered <- relative_freq %>%
   filter(!date %in% c(2009, 2025))
 
+relative_freq_filtered <- relative_freq_filtered %>%
+  mutate(year = lubridate::year(date))
+
 ggplot(relative_freq_filtered, aes(x = date, y = relative_frequency, color = word)) +
   geom_line(size = 1.2) +
   geom_point(size = 2) +
@@ -275,6 +277,8 @@ ggplot(relative_freq_filtered, aes(x = date, y = relative_frequency, color = wor
        y = "Relative Frequency",
        color = "Word") +
   scale_y_continuous(limits = c(0, 0.05)) +
+  scale_x_continuous(breaks = seq(min(relative_freq_filtered$date),
+                                  max(relative_freq_filtered$date), by = 1)) +
   theme(plot.title = element_text(hjust = 0.5, size = 16))
 
 
@@ -322,7 +326,7 @@ tidy_data <- data %>%
 # plot usage of relevant bigrams on top of usage of words
 
 
-selected_bigrams <- c("electric vehicle", "electric vehicles")  # Use stemmed versions if stemming was applied
+selected_bigrams <- c("electric vehicle", "electric vehicles")
 
 # Total words per year
 total_bigrams_per_year <- tidy_data %>%
@@ -343,9 +347,12 @@ word_counts <- word_counts %>%
 combined_df <- bind_rows(bigram_counts %>% select(date, variable, value),
                          word_counts %>% select(date, variable, value))
 
-ggplot(combined_df, aes(x = date, y = value, color = variable, group = variable)) +
+combined_df_filtered <- combined_df %>%
+  filter(!date %in% c(2009, 2025))
+
+ggplot(combined_df_filtered, aes(x = date, y = value, color = variable, group = variable)) +
   geom_line(size = 1.2) +
-  geom_point(size = 2)
+  geom_point(size = 2) +
   theme_minimal() +
   labs(title = "Counts of Selected Words/Bigrams by Year",
        x = "Year",
@@ -385,7 +392,8 @@ library(stm)
   
 tidy_data <- data %>%
   mutate(id = row_number()) %>%
-  unnest_tokens(word, text)
+  unnest_tokens(word, text) %>%
+  anti_join(stop_words, by = "word")
 
 dtm <- tidy_data %>%
   count(id, word) %>%
